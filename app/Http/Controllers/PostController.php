@@ -6,6 +6,7 @@ use App\Http\Resources\PostDetailResource;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Http\Resources\PostResource;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
@@ -18,7 +19,15 @@ class PostController extends Controller
         ]); */
 
         // Dengan menggunakan PostResource
-        return PostResource::collection($post); // Collection untuk menampilkan banyak data
+        // return PostResource::collection($post); // Collection untuk menampilkan banyak data
+
+        // Dengan menggunakan PostDetailResource
+        return PostDetailResource::collection($post->loadMissing('writer:id,username')); // Collection untuk menampilkan banyak data
+
+        /*
+        Note :
+        Kalau mau nambahin relasinya di return harus pakai loadMissing() nah kalau mau nambahinnya menggunakan with() variabel post harus diubah jadi $post = Post::with('writer:id,username')->get(); dan return nya ga perlu dirubah
+        */
     }
 
     public function show($id)
@@ -57,5 +66,55 @@ class PostController extends Controller
 
         $post = Post::findOrFail($id);
         return new PostDetailResource($post); // Single data
+    }
+
+    public function store(Request $request)
+    {
+        // return response()->json("Bisa akses store");
+
+        $validate = $request->validate([
+            'title' => 'required|max:255',
+            'news_content' => 'required'
+        ]);
+
+        // Cara sendiri
+        /* $post = Post::create([
+            'title' => $validate['title'],
+            'news_content' => $validate['news_content'],
+            'author' => Auth::id()
+        ]);
+
+        return response()->json([
+            'message' => 'Post created',
+            'data' => $post
+        ]); */
+
+        // Cara video
+        // $request['author'] = Auth::user()->id;
+        $request['author'] = Auth::id();
+        $post = Post::create($request->all());
+        return new PostDetailResource($post->loadMissing('writer:id,username'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        // dd('Ini update');
+        $validate = $request->validate([
+            'title' => 'required|max:255',
+            'news_content' => 'required'
+        ]);
+
+        $post = Post::findOrFail($id);
+        $post->update($request->all());
+        return new PostDetailResource($post->loadMissing('writer:id,username'));
+    }
+
+    public function destroy($id)
+    {
+        $post = Post::findOrFail($id);
+        $post->delete();
+        return response()->json([
+            'message' => 'Post deleted'
+        ]);
     }
 }
