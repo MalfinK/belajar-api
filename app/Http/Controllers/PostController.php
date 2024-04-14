@@ -12,17 +12,17 @@ class PostController extends Controller
 {
     public function index()
     {
-        $post = Post::all();
+        $posts = Post::all();
         // Default response
         /* return response()->json([
-            'data' => $post
+            'data' => $posts
         ]); */
 
         // Dengan menggunakan PostResource
-        // return PostResource::collection($post); // Collection untuk menampilkan banyak data
+        // return PostResource::collection($posts); // Collection untuk menampilkan banyak data
 
         // Dengan menggunakan PostDetailResource
-        return PostDetailResource::collection($post->loadMissing('writer:id,username')); // Collection untuk menampilkan banyak data
+        return PostDetailResource::collection($posts->loadMissing(['writer:id,username', 'comments:id,post_id,user_id,comments_content'])); // Collection untuk menampilkan banyak data
 
         /*
         Note :
@@ -58,7 +58,7 @@ class PostController extends Controller
 
         // Dengan menggunakan PostResource
         // return new PostResource($post); // Single data
-        return new PostDetailResource($post); // Single data
+        return new PostDetailResource($post->loadMissing(['writer:id,username', 'comments:id,post_id,user_id,comments_content'])); // Single data
     }
 
     public function show2($id)

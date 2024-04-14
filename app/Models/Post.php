@@ -29,4 +29,9 @@ class Post extends Model
             maka akan bingung laravel, apakah author itu field di tabel posts atau relasi ke tabel users, maka dari itu kita harus menambahkan parameter kedua di belongsTo() yaitu author_id
         */
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'post_id', 'id');
+    }
 }
